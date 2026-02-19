@@ -1,5 +1,6 @@
 from django import forms
 from .models import Resident
+from .models import Household
 
 
 class ResidentForm(forms.ModelForm):
@@ -41,4 +42,50 @@ class ResidentForm(forms.ModelForm):
             'is_pwd': 'Person with Disability (PWD)',
             'is_senior': 'Senior Citizen (60+)',
             'is_4ps': '4Ps Beneficiary',
+        }
+
+
+class HouseholdForm(forms.ModelForm):
+    """Form for creating and updating households"""
+    
+    class Meta:
+        model = Household
+        fields = [
+            'street', 'purok',
+            'housing_type', 'housing_condition',
+            'has_electricity', 'has_water', 'water_source',
+            'monthly_income',
+            'notes'
+        ]
+        widgets = {
+            'street': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Rizal Street'}),
+            'purok': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1'}),
+            
+            'housing_type': forms.Select(attrs={'class': 'form-select'}),
+            'housing_condition': forms.Select(attrs={'class': 'form-select'}),
+            
+            'water_source': forms.Select(attrs={'class': 'form-select'}),
+            
+            'monthly_income': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'placeholder': '10000.00',
+                'step': '0.01'
+            }),
+            
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Additional notes...'}),
+        }
+
+
+class HouseholdMemberForm(forms.ModelForm):
+    """Form for assigning residents to household"""
+    
+    class Meta:
+        model = Resident
+        fields = ['household', 'relationship_to_head']
+        widgets = {
+            'household': forms.Select(attrs={'class': 'form-select'}),
+            'relationship_to_head': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Spouse, Child, Parent, Sibling'
+            }),
         }

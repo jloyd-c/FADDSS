@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Resident
+from .models import Household
 
 
 @admin.register(Resident)
@@ -37,3 +38,18 @@ class ResidentAdmin(admin.ModelAdmin):
             'fields': ('is_active', 'has_portal_account', 'notes', 'created_by', 'created_at', 'updated_at')
         }),
     )
+
+
+@admin.register(Household)
+class HouseholdAdmin(admin.ModelAdmin):
+    list_display = [
+        'household_id',
+        'household_head',
+        'purok',
+        'housing_type',
+        'member_count',
+        'is_active'
+    ]
+    list_filter = ['housing_type', 'housing_condition', 'purok', 'is_active']
+    search_fields = ['household_id', 'street', 'purok']
+    readonly_fields = ['household_id', 'created_at', 'updated_at']

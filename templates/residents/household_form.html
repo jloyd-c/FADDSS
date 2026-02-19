@@ -1,0 +1,111 @@
+{% extends 'admin_portal/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-house-add"></i> {{ title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Address Information -->
+                    <h5 class="border-bottom pb-2 mb-3">Address Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Purok *</label>
+                            {{ form.purok }}
+                            {% if form.purok.errors %}
+                            <div class="text-danger">{{ form.purok.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label">Street *</label>
+                            {{ form.street }}
+                            {% if form.street.errors %}
+                            <div class="text-danger">{{ form.street.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Housing Information -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Housing Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Housing Type *</label>
+                            {{ form.housing_type }}
+                            {% if form.housing_type.errors %}
+                            <div class="text-danger">{{ form.housing_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Housing Condition *</label>
+                            {{ form.housing_condition }}
+                            {% if form.housing_condition.errors %}
+                            <div class="text-danger">{{ form.housing_condition.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Utilities -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Utilities</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ form.has_electricity }}
+                                <label class="form-check-label">
+                                    Has Electricity
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ form.has_water }}
+                                <label class="form-check-label">
+                                    Has Water
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Water Source</label>
+                            {{ form.water_source }}
+                        </div>
+                    </div>
+                    
+                    <!-- Economic Information -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Economic Information</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Monthly Household Income (₱)</label>
+                        {{ form.monthly_income }}
+                        <small class="form-text text-muted">Total household income per month</small>
+                        {% if form.monthly_income.errors %}
+                        <div class="text-danger">{{ form.monthly_income.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Notes -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Additional Notes</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        {{ form.notes }}
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'residents:household_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ button_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

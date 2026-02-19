@@ -61,6 +61,21 @@ class Resident(models.Model):
     # Address
     purok = models.CharField(max_length=50, help_text="Purok/Zone number")
     street = models.CharField(max_length=200)
+
+    # Household Relationship (ADD THIS)
+    household = models.ForeignKey(
+        'Household',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='members',
+        help_text="Household this resident belongs to"
+    )
+    relationship_to_head = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Relationship to household head (e.g., Spouse, Child, Parent)"
+    )
     
     # Additional Information
     is_pwd = models.BooleanField(
@@ -144,5 +159,124 @@ class Resident(models.Model):
             
             # Format: RES-0001, RES-0002, etc.
             self.resident_id = f'RES-{new_id:04d}'
+        
+        super().save(*args, **kwargs)
+
+
+
+
+#For Household records
+
+class Household(models.Model):
+    """
+    Household model - groups residents into family units
+    """
+    
+    HOUSING_TYPE_CHOICES = [
+        ('owned', 'Owned'),
+        ('rented', 'Rented'),
+        ('informal', 'Informal Settler'),
+        ('rent_free', 'Rent-Free'),
+    ]
+    
+    HOUSING_CONDITION_CHOICES = [
+        ('good', 'Good'),
+        ('fair', 'Fair'),
+        ('dilapidated', 'Dilapidated'),
+        ('makeshift', 'Makeshift/Informal'),
+    ]
+    
+    WATER_SOURCE_CHOICES = [
+        ('piped', 'Piped Water'),
+        ('well', 'Well'),
+        ('public', 'Public Tap'),
+        ('other', 'Other'),
+    ]
+    
+    household_id = models.CharField(
+        max_length=20,
+        unique=True,
+        db_index=True,
+        help_text="Auto-generated household ID"
+    )
+    
+    household_head = models.OneToOneField(
+        Resident,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='headed_household',
+        help_text="Designated head of household"
+    )
+    
+    # Address
+    street = models.CharField(max_length=200)
+    purok = models.CharField(max_length=50)
+    
+    # Housing Information
+    housing_type = models.CharField(max_length=20, choices=HOUSING_TYPE_CHOICES)
+    housing_condition = models.CharField(max_length=20, choices=HOUSING_CONDITION_CHOICES)
+    
+    # Utilities
+    has_electricity = models.BooleanField(default=True)
+    has_water = models.BooleanField(default=True)
+    water_source = models.CharField(
+        max_length=50,
+        choices=WATER_SOURCE_CHOICES,
+        blank=True
+    )
+    
+    # Income
+    monthly_income = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Total household monthly income"
+    )
+    
+    # Meta
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='households_created'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'households'
+        ordering = ['household_id']
+    
+    def __str__(self):
+        head_name = self.household_head.get_full_name() if self.household_head else "No Head"
+        return f"Household {self.household_id} - {head_name}"
+    
+    @property
+    def member_count(self):
+        """Count active household members"""
+        return self.members.filter(is_active=True).count()
+    
+    @property
+    def full_address(self):
+        """Returns formatted full address"""
+        return f"{self.street}, Purok {self.purok}"
+    
+    def save(self, *args, **kwargs):
+        """Auto-generate household_id if not provided"""
+        if not self.household_id:
+            # Get the last household ID
+            last_household = Household.objects.all().order_by('id').last()
+            if last_household:
+                last_id = int(last_household.household_id.split('-')[1])
+                new_id = last_id + 1
+            else:
+                new_id = 1
+            
+            # Format: HH-0001, HH-0002, etc.
+            self.household_id = f'HH-{new_id:04d}'
         
         super().save(*args, **kwargs)

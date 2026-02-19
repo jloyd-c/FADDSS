@@ -1,0 +1,244 @@
+{% extends 'admin_portal/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="bi bi-house"></i> Household Details</h2>
+        <p class="text-muted">{{ household.household_id }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'residents:household_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+        <a href="{% url 'residents:household_edit' household.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column - Household Information -->
+    <div class="col-md-6">
+        <!-- Basic Information -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Household Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Household ID:</th>
+                        <td><strong>{{ household.household_id }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Household Head:</th>
+                        <td>
+                            {% if household.household_head %}
+                            <a href="{% url 'residents:detail' household.household_head.pk %}">
+                                {{ household.household_head.get_full_name }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Not assigned</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Total Members:</th>
+                        <td><span class="badge bg-info">{{ household.member_count }} members</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Address</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Purok:</th>
+                        <td>{{ household.purok }}</td>
+                    </tr>
+                    <tr>
+                        <th>Street:</th>
+                        <td>{{ household.street }}</td>
+                    </tr>
+                    <tr>
+                        <th>Full Address:</th>
+                        <td>{{ household.full_address }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Housing Information -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-building"></i> Housing Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Housing Type:</th>
+                        <td>{{ household.get_housing_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Condition:</th>
+                        <td>{{ household.get_housing_condition_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Electricity:</th>
+                        <td>
+                            {% if household.has_electricity %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Water:</th>
+                        <td>
+                            {% if household.has_water %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if household.has_water %}
+                    <tr>
+                        <th>Water Source:</th>
+                        <td>{{ household.get_water_source_display }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Economic Information -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-cash"></i> Economic Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Monthly Income:</th>
+                        <td>
+                            {% if household.monthly_income %}
+                            <strong>₱{{ household.monthly_income|floatformat:2 }}</strong>
+                            {% else %}
+                            <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        {% if household.notes %}
+        <!-- Notes -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-journal-text"></i> Notes</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ household.notes }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column - Household Members -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Household Members ({{ members.count }})</h5>
+            </div>
+            <div class="card-body">
+                {% if members %}
+                <div class="list-group">
+                    {% for member in members %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <a href="{% url 'residents:detail' member.pk %}" class="text-decoration-none">
+                                    {{ member.get_full_name }}
+                                </a>
+                                {% if member == household.household_head %}
+                                <span class="badge bg-primary">Head</span>
+                                {% endif %}
+                            </h6>
+                            <small>{{ member.age }} years old</small>
+                        </div>
+                        <p class="mb-1">
+                            <small class="text-muted">
+                                {% if member.relationship_to_head %}
+                                {{ member.relationship_to_head }}
+                                {% else %}
+                                Member
+                                {% endif %}
+                            </small>
+                        </p>
+                        <small class="text-muted">
+                            {{ member.get_gender_display }} • {{ member.get_civil_status_display }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-people" style="font-size: 3rem; color: #ccc;"></i>
+                    <p class="text-muted mt-2">No members in this household yet.</p>
+                    <a href="{% url 'residents:list' %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-person-plus"></i> Assign Members
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Meta Information -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Record Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th width="40%">Status:</th>
+                        <td>
+                            {% if household.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Created By:</th>
+                        <td>
+                            {% if household.created_by %}
+                            {{ household.created_by.get_full_name }}
+                            {% else %}
+                            <span class="text-muted">System</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Created At:</th>
+                        <td>{{ household.created_at|date:"F d, Y g:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Last Updated:</th>
+                        <td>{{ household.updated_at|date:"F d, Y g:i A" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -6,7 +6,7 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views import View
 from apps.accounts.models import User
-from apps.residents.models import Resident
+from apps.residents.models import Resident, Household
 
 
 class AdminLoginView(LoginView):
@@ -46,7 +46,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         
         # Get statistics (we'll add real data later)
         context['total_residents'] = Resident.objects.filter(is_active=True).count()
-        context['total_households'] = 0
+        context['total_households'] = Household.objects.filter(is_active=True).count()
         context['total_programs'] = 0
         context['active_users'] = User.objects.filter(is_active=True).count()
         
