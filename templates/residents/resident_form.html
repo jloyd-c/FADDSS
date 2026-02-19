@@ -1,0 +1,170 @@
+{% extends 'admin_portal/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-plus"></i> {{ title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">First Name *</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                            <div class="text-danger">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Middle Name</label>
+                            {{ form.middle_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Last Name *</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                            <div class="text-danger">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label">Suffix</label>
+                            {{ form.suffix }}
+                        </div>
+                    </div>
+                    
+                    <!-- Personal Details -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Personal Details</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Date of Birth *</label>
+                            {{ form.date_of_birth }}
+                            {% if form.date_of_birth.errors %}
+                            <div class="text-danger">{{ form.date_of_birth.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Gender *</label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}
+                            <div class="text-danger">{{ form.gender.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Civil Status *</label>
+                            {{ form.civil_status }}
+                            {% if form.civil_status.errors %}
+                            <div class="text-danger">{{ form.civil_status.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Contact Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                            <div class="text-danger">{{ form.phone_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Address -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Address</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Purok *</label>
+                            {{ form.purok }}
+                            {% if form.purok.errors %}
+                            <div class="text-danger">{{ form.purok.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label">Street *</label>
+                            {{ form.street }}
+                            {% if form.street.errors %}
+                            <div class="text-danger">{{ form.street.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Information -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Additional Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                {{ form.is_pwd }}
+                                <label class="form-check-label">
+                                    {{ form.is_pwd.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                {{ form.is_senior }}
+                                <label class="form-check-label">
+                                    {{ form.is_senior.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                {{ form.is_4ps }}
+                                <label class="form-check-label">
+                                    {{ form.is_4ps.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Employment -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Employment</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Employment Status</label>
+                            {{ form.employment_status }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Occupation</label>
+                            {{ form.occupation }}
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4">Notes</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes</label>
+                        {{ form.notes }}
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'residents:list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ button_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

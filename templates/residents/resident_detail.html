@@ -1,0 +1,271 @@
+{% extends 'admin_portal/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="bi bi-person-circle"></i> Resident Details</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'residents:list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+        <a href="{% url 'residents:edit' resident.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column - Personal Information -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person"></i> Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Resident ID:</th>
+                        <td><strong>{{ resident.resident_id }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Full Name:</th>
+                        <td><strong>{{ resident.get_full_name }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Date of Birth:</th>
+                        <td>{{ resident.date_of_birth|date:"F d, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Age:</th>
+                        <td>{{ resident.age }} years old</td>
+                    </tr>
+                    <tr>
+                        <th>Gender:</th>
+                        <td>
+                            {% if resident.gender == 'M' %}
+                            <i class="bi bi-gender-male text-primary"></i> Male
+                            {% else %}
+                            <i class="bi bi-gender-female text-danger"></i> Female
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Civil Status:</th>
+                        <td>{{ resident.get_civil_status_display }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-telephone"></i> Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Phone:</th>
+                        <td>
+                            {% if resident.phone_number %}
+                            <i class="bi bi-phone"></i> {{ resident.phone_number }}
+                            {% else %}
+                            <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>
+                            {% if resident.email %}
+                            <i class="bi bi-envelope"></i> {{ resident.email }}
+                            {% else %}
+                            <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Employment -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-briefcase"></i> Employment</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Status:</th>
+                        <td>
+                            {% if resident.employment_status %}
+                            {{ resident.get_employment_status_display }}
+                            {% else %}
+                            <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Occupation:</th>
+                        <td>
+                            {% if resident.occupation %}
+                            {{ resident.occupation }}
+                            {% else %}
+                            <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Address & Additional Info -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Address</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Purok:</th>
+                        <td>{{ resident.purok }}</td>
+                    </tr>
+                    <tr>
+                        <th>Street:</th>
+                        <td>{{ resident.street }}</td>
+                    </tr>
+                    <tr>
+                        <th>Full Address:</th>
+                        <td>{{ resident.full_address }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Special Categories -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-star"></i> Special Categories</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    {% if resident.is_pwd %}
+                    <span class="badge bg-info p-2">
+                        <i class="bi bi-person-wheelchair"></i> Person with Disability (PWD)
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="mb-2">
+                    {% if resident.is_senior %}
+                    <span class="badge bg-warning p-2">
+                        <i class="bi bi-person-cane"></i> Senior Citizen (60+)
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="mb-2">
+                    {% if resident.is_4ps %}
+                    <span class="badge bg-success p-2">
+                        <i class="bi bi-cash-stack"></i> 4Ps Beneficiary
+                    </span>
+                    {% endif %}
+                </div>
+                {% if not resident.is_pwd and not resident.is_senior and not resident.is_4ps %}
+                <p class="text-muted mb-0">No special categories</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Portal Account -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Portal Account</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Has Account:</th>
+                        <td>
+                            {% if resident.has_portal_account %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-secondary">No</span>
+                            <a href="#" class="btn btn-sm btn-primary ms-2">
+                                <i class="bi bi-plus-circle"></i> Create Account
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if resident.notes %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-journal-text"></i> Notes</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ resident.notes }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Meta Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Record Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th width="40%">Status:</th>
+                        <td>
+                            {% if resident.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Created By:</th>
+                        <td>
+                            {% if resident.created_by %}
+                            {{ resident.created_by.get_full_name }}
+                            {% else %}
+                            <span class="text-muted">System</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Created At:</th>
+                        <td>{{ resident.created_at|date:"F d, Y g:i A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Last Updated:</th>
+                        <td>{{ resident.updated_at|date:"F d, Y g:i A" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{% url 'residents:edit' resident.pk %}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Edit Resident
+            </a>
+            <a href="{% url 'residents:delete' resident.pk %}" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Delete Resident
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

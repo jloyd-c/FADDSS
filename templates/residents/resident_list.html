@@ -1,0 +1,166 @@
+{% extends 'admin_portal/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="bi bi-people"></i> Residents</h2>
+        <p class="text-muted">Total: {{ total_residents }} active residents</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'residents:create' %}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Add New Resident
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                <input type="text" 
+                       name="search" 
+                       class="form-control" 
+                       placeholder="Search by name, ID, or phone..." 
+                       value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="purok" class="form-select">
+                    <option value="">All Puroks</option>
+                    {% for purok in puroks %}
+                    <option value="{{ purok }}" {% if selected_purok == purok %}selected{% endif %}>
+                        Purok {{ purok }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="gender" class="form-select">
+                    <option value="">All Genders</option>
+                    <option value="M" {% if selected_gender == 'M' %}selected{% endif %}>Male</option>
+                    <option value="F" {% if selected_gender == 'F' %}selected{% endif %}>Female</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Residents Table -->
+<div class="card">
+    <div class="card-body">
+        {% if residents %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Resident ID</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Purok</th>
+                        <th>Contact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resident in residents %}
+                    <tr>
+                        <td>
+                            <strong>{{ resident.resident_id }}</strong>
+                        </td>
+                        <td>
+                            <a href="{% url 'residents:detail' resident.pk %}" class="text-decoration-none">
+                                {{ resident.get_full_name }}
+                            </a>
+                            {% if resident.is_pwd %}
+                            <span class="badge bg-info">PWD</span>
+                            {% endif %}
+                            {% if resident.is_senior %}
+                            <span class="badge bg-warning">Senior</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ resident.age }} years</td>
+                        <td>
+                            {% if resident.gender == 'M' %}
+                            <i class="bi bi-gender-male text-primary"></i> Male
+                            {% else %}
+                            <i class="bi bi-gender-female text-danger"></i> Female
+                            {% endif %}
+                        </td>
+                        <td>{{ resident.purok }}</td>
+                        <td>
+                            {% if resident.phone_number %}
+                            <small>{{ resident.phone_number }}</small>
+                            {% else %}
+                            <small class="text-muted">No phone</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'residents:detail' resident.pk %}" 
+                               class="btn btn-sm btn-info" 
+                               title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'residents:edit' resident.pk %}" 
+                               class="btn btn-sm btn-warning" 
+                               title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'residents:delete' resident.pk %}" 
+                               class="btn btn-sm btn-danger" 
+                               title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-people" style="font-size: 4rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No residents found.</p>
+            <a href="{% url 'residents:create' %}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Add First Resident
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

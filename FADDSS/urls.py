@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('admin-portal/', include('apps.admin_portal.urls')),
+    path('admin-portal/residents/', include('apps.residents.urls')),
 ]
 
 if settings.DEBUG:
