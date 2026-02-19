@@ -1,0 +1,74 @@
+{% extends 'admin_portal/base.html' %}
+
+{% block title %}Login - Barangay Admin Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-shield-lock"></i> Barangay Admin Portal
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <h5 class="text-center mb-4">Login to Your Account</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">
+                            <i class="bi bi-person"></i> Username
+                        </label>
+                        <input type="text" 
+                               name="username" 
+                               class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}" 
+                               id="id_username" 
+                               placeholder="Enter your username"
+                               required
+                               autofocus>
+                        {% if form.username.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.username.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">
+                            <i class="bi bi-lock"></i> Password
+                        </label>
+                        <input type="password" 
+                               name="password" 
+                               class="form-control form-control-lg {% if form.password.errors %}is-invalid{% endif %}" 
+                               id="id_password" 
+                               placeholder="Enter your password"
+                               required>
+                        {% if form.password.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.password.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted">
+                <small>Barangay Management System v1.0</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

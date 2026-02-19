@@ -11,6 +11,7 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FADDS.settings')
+# Production settings for WSGI
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FADDSS.settings.production')
 
 application = get_wsgi_application()

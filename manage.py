@@ -6,7 +6,8 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FADDS.settings')
+    #in development mode
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FADDSS.settings.development')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

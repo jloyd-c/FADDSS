@@ -11,6 +11,7 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FADDS.settings')
+# Production settings for ASGI
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FADDSS.settings.production')
 
 application = get_asgi_application()
