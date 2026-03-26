@@ -1,0 +1,65 @@
+{
+  "folders": [
+    {
+      "name": "FADDSS (Root)",
+      "path": "."
+    },
+    {
+      "name": "Backend (Django)",
+      "path": "backend"
+    },
+    {
+      "name": "Barangay Portal (Admin)",
+      "path": "frontend/barangay_portal"
+    },
+    {
+      "name": "Resident Portal",
+      "path": "frontend/resident_portal"
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "${workspaceFolder:Backend (Django)}/venv/Scripts/python.exe",
+    "python.terminal.activateEnvironment": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.python"
+    },
+    "files.associations": {
+      "*.jsx": "javascriptreact"
+    },
+    "emmet.includeLanguages": {
+      "javascript": "javascriptreact"
+    },
+    "tailwindCSS.experimental.classRegex": [
+      ["className\\s*=\\s*\"([^\"]*)\"", "[\"'`]([^\"'`]*).*?[\"'`]"]
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "bradlc.vscode-tailwindcss",
+      "formulahendry.auto-rename-tag",
+      "christian-kohler.path-intellisense",
+      "humao.rest-client"
+    ]
+  },
+  "launch": {
+    "configurations": [
+      {
+        "name": "Django Dev Server",
+        "type": "python",
+        "request": "launch",
+        "program": "${workspaceFolder:Backend (Django)}/manage.py",
+        "args": ["runserver"],
+        "django": true,
+        "env": {
+          "DJANGO_SETTINGS_MODULE": "config.settings.development"
+        }
+      }
+    ]
+  }
+}
