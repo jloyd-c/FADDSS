@@ -11,6 +11,8 @@ const StaffPage           = lazy(() => import('../pages/users/StaffPage'))
 const ResidentsPage       = lazy(() => import('../pages/residents/ResidentsPage'))
 const ResidentDetailPage  = lazy(() => import('../pages/residents/ResidentDetailPage'))
 const ChangePasswordPage  = lazy(() => import('../pages/ChangePasswordPage'))
+const UnauthorizedPage    = lazy(() => import('../pages/UnauthorizedPage'))
+const StaffDetailPage     = lazy(() => import('../pages/users/StaffDetailPage'))
 
 const router = createBrowserRouter([
   {
@@ -29,9 +31,22 @@ const router = createBrowserRouter([
           { index: true, element: <DashboardPage /> },
           { path: 'dashboard', element: <DashboardPage /> },
 
-          // User management
-          { path: 'users/admins', element: <AdminsPage /> },
-          { path: 'users/staff',  element: <StaffPage /> },
+          // SUPER_ADMIN only
+          {
+            element: <ProtectedRoute allowedRoles={['SUPER_ADMIN']} />,
+            children: [
+              { path: 'users/admins', element: <AdminsPage /> },
+            ],
+          },
+
+          // SUPER_ADMIN or ADMIN (with perm_manage_staff checked in the page)
+          {
+            element: <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']} />,
+            children: [
+              { path: 'users/staff',      element: <StaffPage /> },
+              { path: 'users/staff/:id',  element: <StaffDetailPage /> },
+            ],
+          },
 
           // Residents
           { path: 'residents',     element: <ResidentsPage /> },
@@ -39,6 +54,8 @@ const router = createBrowserRouter([
 
           // Account
           { path: 'change-password', element: <ChangePasswordPage /> },
+
+          { path: 'unauthorized', element: <UnauthorizedPage /> },
         ],
       },
     ],

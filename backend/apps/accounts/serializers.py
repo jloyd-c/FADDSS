@@ -15,7 +15,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'full_name', 'role', 'is_active', 'date_joined')
+        fields = (
+            'id', 'email', 'username', 'first_name', 'last_name', 'full_name',
+            'role', 'is_active', 'date_joined',
+            'must_change_password',
+            'perm_manage_residents', 'perm_manage_staff', 'perm_view_reports',
+            'perm_delete_users', 'perm_change_system_settings',
+        )
         read_only_fields = ('id', 'date_joined')
 
 
@@ -299,3 +305,72 @@ class StaffDetailSerializer(serializers.ModelSerializer):
             'purok_permissions',
         )
         read_only_fields = ('id', 'role', 'email', 'created_by_email', 'date_joined')
+
+
+# ---------------------------------------------------------------------------
+# Staff update (profile + purok permissions)
+# ---------------------------------------------------------------------------
+
+class UpdateStaffSerializer(serializers.ModelSerializer):
+    """
+    PATCH endpoint for Staff — updates user fields, StaffProfile fields,
+    and replaces purok permissions in one request.
+    """
+
+    # Flattened StaffProfile fields
+    phone = serializers.CharField(max_length=15, required=False, allow_blank=True)
+    department = serializers.ChoiceField(
+        choices=StaffProfile.Department.choices, required=False, allow_blank=True
+    )
+    work_start = serializers.TimeField(required=False)
+    work_end = serializers.TimeField(required=False)
+    allow_weekend = serializers.BooleanField(required=False)
+    allow_after_hours = serializers.BooleanField(required=False)
+    perm_generate_reports = serializers.BooleanField(required=False)
+
+    # Replace all purok permissions when provided
+    purok_permissions = _PurokPermissionInputSerializer(many=True, required=False)
+
+    class Meta:
+        model = User
+        fields = (
+            'first_name', 'last_name', 'is_active',
+            'phone', 'department', 'work_start', 'work_end',
+            'allow_weekend', 'allow_after_hours', 'perm_generate_reports',
+            'purok_permissions',
+        )
+
+    _PROFILE_FIELDS = {'phone', 'department', 'work_start', 'work_end',
+                       'allow_weekend', 'allow_after_hours', 'perm_generate_reports'}
+
+    def update(self, instance, validated_data):
+        # Split out profile and purok data
+        profile_data = {k: validated_data.pop(k) for k in list(validated_data) if k in self._PROFILE_FIELDS}
+        purok_permissions_data = validated_data.pop('purok_permissions', None)
+
+        # Update User fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Update StaffProfile
+        if profile_data:
+            StaffProfile.objects.update_or_create(user=instance, defaults=profile_data)
+
+        # Replace purok permissions entirely if provided
+        if purok_permissions_data is not None:
+            StaffPurokPermission.objects.filter(user=instance).delete()
+            StaffPurokPermission.objects.bulk_create([
+                StaffPurokPermission(
+                    user=instance,
+                    purok=perm['purok'],
+                    can_view=perm.get('can_view', True),
+                    can_create=perm.get('can_create', False),
+                    can_edit=perm.get('can_edit', False),
+                    can_delete=perm.get('can_delete', False),
+                    can_export=perm.get('can_export', False),
+                )
+                for perm in purok_permissions_data
+            ])
+
+        return instance

@@ -9,6 +9,7 @@ from .serializers import (
     CreateAdminSerializer,
     CreateStaffSerializer,
     StaffDetailSerializer,
+    UpdateStaffSerializer,
     UserSerializer,
 )
 
@@ -76,6 +77,8 @@ class StaffUserViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateStaffSerializer
+        if self.action in ('update', 'partial_update'):
+            return UpdateStaffSerializer
         return StaffDetailSerializer
 
     def create(self, request, *args, **kwargs):

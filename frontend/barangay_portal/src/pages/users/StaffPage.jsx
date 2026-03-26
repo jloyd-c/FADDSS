@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Trash2, Users } from 'lucide-react'
 import { getStaff, createStaff, deleteStaff } from '../../api/usersApi'
 import { getPuroks } from '../../api/residentsApi'
@@ -30,6 +31,7 @@ const EMPTY_FORM = {
 
 export default function StaffPage() {
   const toast = useToast()
+  const navigate = useNavigate()
   const [rows, setRows] = useState([])
   const [count, setCount] = useState(0)
   const [page, setPage] = useState(1)
@@ -193,7 +195,7 @@ export default function StaffPage() {
       </div>
 
       <Card>
-        <Table columns={columns} data={rows} loading={loading} emptyMessage="No staff accounts found." />
+        <Table columns={columns} data={rows} loading={loading} emptyMessage="No staff accounts found." onRowClick={(row) => navigate(`/users/staff/${row.id}`)} />
         <Pagination count={count} page={page} onPageChange={load} />
       </Card>
 

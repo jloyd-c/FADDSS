@@ -1,8 +1,17 @@
 import { create } from 'zustand'
 import { login as loginApi, logout as logoutApi } from '../api/authApi'
 
+function loadUser() {
+  try {
+    const raw = localStorage.getItem('user')
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
 const useAuthStore = create((set, get) => ({
-  user: null,
+  user: loadUser(),
   accessToken: localStorage.getItem('access_token') || null,
   refreshToken: localStorage.getItem('refresh_token') || null,
   isAuthenticated: !!localStorage.getItem('access_token'),
@@ -15,6 +24,7 @@ const useAuthStore = create((set, get) => ({
       const { data } = await loginApi(email, password)
       localStorage.setItem('access_token', data.access)
       localStorage.setItem('refresh_token', data.refresh)
+      localStorage.setItem('user', JSON.stringify(data.user))
       set({
         user: data.user,
         accessToken: data.access,
@@ -41,11 +51,15 @@ const useAuthStore = create((set, get) => ({
     } finally {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user')
       set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false })
     }
   },
 
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    localStorage.setItem('user', JSON.stringify(user))
+    set({ user })
+  },
   clearError: () => set({ error: null }),
 }))
 
