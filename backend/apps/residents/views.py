@@ -43,6 +43,7 @@ class ResidentViewSet(viewsets.ModelViewSet):
     """
 
     permission_classes = [CanManageResidents]
+    search_fields = ['first_name', 'last_name', 'middle_name', 'resident_id', 'contact_number', 'email']
 
     def get_serializer_class(self):
         if self.action == 'create':

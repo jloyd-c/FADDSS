@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, ToggleLeft, ToggleRight, Shield } from 'lucide-react'
+import { Plus, Trash2, ToggleLeft, ToggleRight, Shield, Search } from 'lucide-react'
+import useDebounce from '../../hooks/useDebounce'
 import { getAdmins, createAdmin, updateAdmin, deleteAdmin } from '../../api/usersApi'
 import { Card } from '../../components/ui/Card'
 import Table, { Pagination } from '../../components/ui/Table'
@@ -45,11 +46,15 @@ export default function AdminsPage() {
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [createdCredentials, setCreatedCredentials] = useState(null)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 350)
 
   const load = useCallback(async (p = 1) => {
     setLoading(true)
     try {
-      const { data } = await getAdmins({ page: p })
+      const params = { page: p }
+      if (debouncedSearch) params.search = debouncedSearch
+      const { data } = await getAdmins(params)
       setRows(data.results)
       setCount(data.count)
       setPage(p)
@@ -58,7 +63,7 @@ export default function AdminsPage() {
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [debouncedSearch, toast])
 
   useEffect(() => { load() }, [load])
 
@@ -188,6 +193,16 @@ export default function AdminsPage() {
         >
           <Plus size={16} /> Create Admin
         </button>
+      </div>
+
+      <div className="relative w-56">
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search name or email…"
+          className="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+        />
       </div>
 
       <Card>

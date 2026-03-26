@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, UserCheck, Search } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import useDebounce from '../../hooks/useDebounce'
 import { getResidents, createResident, getPuroks } from '../../api/residentsApi'
 import { Card } from '../../components/ui/Card'
 import Table, { Pagination } from '../../components/ui/Table'
@@ -53,6 +54,7 @@ export default function ResidentsPage() {
   const [search, setSearch] = useState('')
   const [filterPurok, setFilterPurok] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const debouncedSearch = useDebounce(search, 350)
   const [showCreate, setShowCreate] = useState(searchParams.get('create') === '1')
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
@@ -62,7 +64,7 @@ export default function ResidentsPage() {
     setLoading(true)
     try {
       const params = { page: p }
-      if (search) params.search = search
+      if (debouncedSearch) params.search = debouncedSearch
       if (filterPurok) params.purok = filterPurok
       if (filterStatus) params.status = filterStatus
       const { data } = await getResidents(params)
@@ -74,7 +76,7 @@ export default function ResidentsPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, filterPurok, filterStatus, toast])
+  }, [debouncedSearch, filterPurok, filterStatus, toast])
 
   useEffect(() => { load() }, [load])
 

@@ -34,6 +34,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     """
 
     permission_classes = [IsSuperAdmin]
+    search_fields = ['email', 'first_name', 'last_name', 'username']
 
     def get_queryset(self):
         return User.objects.filter(role=User.Role.ADMIN).select_related('created_by')
@@ -66,6 +67,7 @@ class StaffUserViewSet(viewsets.ModelViewSet):
     """
 
     permission_classes = [CanManageStaff]
+    search_fields = ['email', 'first_name', 'last_name', 'username']
 
     def get_queryset(self):
         return (
