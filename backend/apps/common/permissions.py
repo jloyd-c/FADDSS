@@ -109,3 +109,62 @@ class IsOwnerOrAdmin(BasePermission):
         if request.user.role in ('SUPER_ADMIN', 'ADMIN'):
             return True
         return hasattr(obj, 'user') and obj.user == request.user
+
+
+# ── Profiling-specific role permissions ──────────────────────────────────────
+
+class CanEncodeSurvey(BasePermission):
+    """
+    Encoder role: can create and edit survey data.
+
+    Allowed:
+      - SUPER_ADMIN and ADMIN always
+      - STAFF who have can_create=True OR can_edit=True on at least one purok
+        (queryset-level filtering in the ViewSet enforces the per-purok scope)
+
+    Rationale: The permission check here is a fast global gate — it rejects
+    users with zero create/edit permissions across ALL puroks without hitting
+    the queryset. The purok-level scoping is enforced separately in get_queryset().
+    """
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.user.role in ('SUPER_ADMIN', 'ADMIN'):
+            return True
+        if request.user.role == 'STAFF':
+            from django.db.models import Q
+            return request.user.purok_permissions.filter(
+                Q(can_create=True) | Q(can_edit=True)
+            ).exists()
+        return False
+
+
+class CanViewSurvey(BasePermission):
+    """
+    Viewer role: read-only access to survey data.
+
+    Allowed:
+      - SUPER_ADMIN and ADMIN always
+      - STAFF who have can_view=True on at least one purok
+    """
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.user.role in ('SUPER_ADMIN', 'ADMIN'):
+            return True
+        if request.user.role == 'STAFF':
+            return request.user.purok_permissions.filter(can_view=True).exists()
+        return False
+
+
+class CanAccessDeletedRecords(BasePermission):
+    """
+    Allows SUPER_ADMIN and ADMIN to access soft-deleted records via
+    `?include_deleted=true` on export/query endpoints.
+    """
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.role in ('SUPER_ADMIN', 'ADMIN')
+        )

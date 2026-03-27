@@ -4,15 +4,23 @@ import ProtectedRoute from './ProtectedRoute'
 import AuthLayout from '../components/layout/AuthLayout'
 import MainLayout from '../components/layout/MainLayout'
 
-const LoginPage           = lazy(() => import('../pages/LoginPage'))
-const DashboardPage       = lazy(() => import('../pages/DashboardPage'))
-const AdminsPage          = lazy(() => import('../pages/users/AdminsPage'))
-const StaffPage           = lazy(() => import('../pages/users/StaffPage'))
-const ResidentsPage       = lazy(() => import('../pages/residents/ResidentsPage'))
-const ResidentDetailPage  = lazy(() => import('../pages/residents/ResidentDetailPage'))
-const ChangePasswordPage  = lazy(() => import('../pages/ChangePasswordPage'))
-const UnauthorizedPage    = lazy(() => import('../pages/UnauthorizedPage'))
-const StaffDetailPage     = lazy(() => import('../pages/users/StaffDetailPage'))
+const LoginPage             = lazy(() => import('../pages/LoginPage'))
+const DashboardPage         = lazy(() => import('../pages/DashboardPage'))
+const AdminsPage            = lazy(() => import('../pages/users/AdminsPage'))
+const StaffPage             = lazy(() => import('../pages/users/StaffPage'))
+const ResidentsPage         = lazy(() => import('../pages/residents/ResidentsPage'))
+const ResidentDetailPage    = lazy(() => import('../pages/residents/ResidentDetailPage'))
+const ChangePasswordPage    = lazy(() => import('../pages/ChangePasswordPage'))
+const UnauthorizedPage      = lazy(() => import('../pages/UnauthorizedPage'))
+const StaffDetailPage       = lazy(() => import('../pages/users/StaffDetailPage'))
+
+// Profiling
+const ProfilingPage         = lazy(() => import('../pages/profiling/ProfilingPage'))
+const SurveyWizard          = lazy(() => import('../pages/profiling/SurveyWizard'))
+const HouseholdComparison   = lazy(() => import('../pages/profiling/HouseholdComparison'))
+const ConceptSearch         = lazy(() => import('../pages/profiling/ConceptSearch'))
+const ReportBuilder         = lazy(() => import('../pages/profiling/ReportBuilder'))
+const SchemaBuilderPage     = lazy(() => import('../pages/profiling/SchemaBuilderPage'))
 
 const router = createBrowserRouter([
   {
@@ -51,6 +59,21 @@ const router = createBrowserRouter([
           // Residents
           { path: 'residents',     element: <ResidentsPage /> },
           { path: 'residents/:id', element: <ResidentDetailPage /> },
+
+          // Profiling — all authenticated staff
+          { path: 'profiling',            element: <ProfilingPage /> },
+          { path: 'profiling/wizard',     element: <SurveyWizard /> },
+          { path: 'profiling/comparison', element: <HouseholdComparison /> },
+          { path: 'profiling/concepts',   element: <ConceptSearch /> },
+          { path: 'profiling/reports',    element: <ReportBuilder /> },
+
+          // Profiling — admin-only schema builder
+          {
+            element: <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']} />,
+            children: [
+              { path: 'profiling/schemas', element: <SchemaBuilderPage /> },
+            ],
+          },
 
           // Account
           { path: 'change-password', element: <ChangePasswordPage /> },

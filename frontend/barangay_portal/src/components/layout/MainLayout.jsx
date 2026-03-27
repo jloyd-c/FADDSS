@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Users, UserCheck, MapPin, FileText,
   LogOut, Shield, UserCircle, Building2, KeyRound, Menu, X,
+  Home, GitCompare, Lightbulb, FileBarChart2, ClipboardList, Settings2,
 } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 
@@ -79,6 +80,20 @@ function SidebarContent({ user, role, roleInfo, onNavClick, onLogout }) {
           <>
             <NavSection label="Records" />
             <NavItem to="/residents" icon={UserCheck} label="Residents" onClick={onNavClick} />
+          </>
+        )}
+
+        {(role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'STAFF') && (
+          <>
+            <NavSection label="Profiling" />
+            <NavItem to="/profiling"            icon={Home}          label="Households"  end onClick={onNavClick} />
+            <NavItem to="/profiling/wizard"     icon={ClipboardList} label="New Survey"  onClick={onNavClick} />
+            <NavItem to="/profiling/comparison" icon={GitCompare}    label="Compare"     onClick={onNavClick} />
+            <NavItem to="/profiling/concepts"   icon={Lightbulb}     label="Concepts"    onClick={onNavClick} />
+            <NavItem to="/profiling/reports"    icon={FileBarChart2} label="Reports"     onClick={onNavClick} />
+            {(role === 'SUPER_ADMIN' || role === 'ADMIN') && (
+              <NavItem to="/profiling/schemas" icon={Settings2} label="Schema Builder" onClick={onNavClick} />
+            )}
           </>
         )}
 

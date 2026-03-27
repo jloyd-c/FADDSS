@@ -1,0 +1,18 @@
+Collecting django-filter
+  Using cached django_filter-25.2-py3-none-any.whl.metadata (5.1 kB)
+Collecting Django>=5.2 (from django-filter)
+  Using cached django-6.0.3-py3-none-any.whl.metadata (3.9 kB)
+Collecting asgiref>=3.9.1 (from Django>=5.2->django-filter)
+  Using cached asgiref-3.11.1-py3-none-any.whl.metadata (9.3 kB)
+Collecting sqlparse>=0.5.0 (from Django>=5.2->django-filter)
+  Using cached sqlparse-0.5.5-py3-none-any.whl.metadata (4.7 kB)
+Requirement already satisfied: tzdata in c:\users\jhonl\appdata\local\programs\python\python313\lib\site-packages (from Django>=5.2->django-filter) (2025.2)
+Using cached django_filter-25.2-py3-none-any.whl (94 kB)
+Using cached django-6.0.3-py3-none-any.whl (8.4 MB)
+Using cached asgiref-3.11.1-py3-none-any.whl (24 kB)
+Using cached sqlparse-0.5.5-py3-none-any.whl (46 kB)
+Installing collected packages: sqlparse, asgiref, Django, django-filter
+Successfully installed Django-6.0.3 asgiref-3.11.1 django-filter-25.2 sqlparse-0.5.5
+
+[notice] A new release of pip is available: 24.3.1 -> 26.0.1
+[notice] To update, run: python.exe -m pip install --upgrade pip
