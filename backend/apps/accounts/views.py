@@ -1,12 +1,15 @@
 from rest_framework import generics, viewsets, status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from apps.common.permissions import CanManageStaff, IsSuperAdmin
+from apps.common.permissions import CanManageStaff, IsAdmin, IsSuperAdmin
 from .models import User
 from .serializers import (
     AdminDetailSerializer,
     CreateAdminSerializer,
+    CreateResidentAccountSerializer,
     CreateStaffSerializer,
     StaffDetailSerializer,
     UpdateStaffSerializer,
@@ -44,8 +47,18 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             return CreateAdminSerializer
         return AdminDetailSerializer
 
+    def _block_self_modification(self, instance):
+        """Prevent any user from editing or deleting their own account via this endpoint."""
+        if instance == self.request.user:
+            raise PermissionDenied('You cannot modify your own account through this endpoint.')
+
+    def update(self, request, *args, **kwargs):
+        self._block_self_modification(self.get_object())
+        return super().update(request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+        self._block_self_modification(instance)
         if instance.role == User.Role.SUPER_ADMIN:
             return Response(
                 {'error': 'Super Admin accounts cannot be deleted.'},
@@ -95,6 +108,44 @@ class StaffUserViewSet(viewsets.ModelViewSet):
                 'role': user.role,
                 'temp_password': user.temp_password,
                 'message': 'Staff account created. Share the temp_password with the new staff member.',
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class ResidentAccountView(APIView):
+    """
+    POST /api/v1/users/residents/
+
+    Links an existing Person record to a new RESIDENT user account.
+    Only ADMIN and SUPER_ADMIN can access this endpoint.
+
+    Request body:
+        { "person_id": "<uuid>", "email": "resident@example.com" }
+
+    Response (201):
+        { "id": ..., "email": ..., "temp_password": "...", "message": "..." }
+    """
+
+    permission_classes = [IsAdmin]
+
+    def post(self, request):
+        serializer = CreateResidentAccountSerializer(
+            data=request.data, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(
+            {
+                'id': user.id,
+                'email': user.email,
+                'full_name': user.full_name,
+                'role': user.role,
+                'temp_password': user.temp_password,
+                'message': (
+                    'Resident account created and linked to the Person record. '
+                    'Share the temp_password with the resident.'
+                ),
             },
             status=status.HTTP_201_CREATED,
         )

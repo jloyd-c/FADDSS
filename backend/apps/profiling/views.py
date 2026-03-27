@@ -66,7 +66,9 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.response import Response
 
 from apps.common.permissions import (
+    CanDeleteSurvey,
     CanEncodeSurvey,
+    CanExportSurvey,
     CanViewSurvey,
     IsAdmin,
     IsStaff,
@@ -232,6 +234,35 @@ class HouseholdViewSet(PurokScopedMixin, viewsets.ModelViewSet):
 
     # ── Custom actions ───────────────────────────────────────────────────────
 
+    @action(detail=False, methods=['get'], url_path='my', permission_classes=[CanViewSurvey, NotForcingPasswordChange])
+    def my_household(self, request):
+        """
+        GET /households/my/
+
+        Returns the Household record that the authenticated RESIDENT belongs to.
+        The RESIDENT must have a linked Person → Family → HouseholdSurvey → Household chain.
+
+        Other roles receive a 403 — they use the standard list/retrieve endpoints.
+        """
+        if request.user.role != 'RESIDENT':
+            raise PermissionDenied('This endpoint is only for Resident accounts.')
+        if not request.user.person_id:
+            raise NotFound('Your account is not linked to a person record.')
+
+        try:
+            household = (
+                request.user.person
+                .family
+                .household_survey
+                .household
+            )
+        except Exception:
+            raise NotFound('Could not locate your household. Please contact an administrator.')
+
+        # Enforce object-level permission (ensures resident owns this household)
+        self.check_object_permissions(request, household)
+        return Response(HouseholdSerializer(household).data)
+
     @action(detail=True, methods=['get'])
     def surveys(self, request, pk=None):
         """
@@ -366,13 +397,12 @@ class HouseholdSurveyViewSet(PurokScopedMixin, viewsets.ModelViewSet):
     ordering          = ['-survey_year']
 
     def get_permissions(self):
-        if self.action in ('verify', 'request_revision', 'destroy'):
+        if self.action == 'destroy':
+            # Hard-delete: SUPER_ADMIN only
+            return [CanDeleteSurvey(), NotForcingPasswordChange()]
+        if self.action in ('verify', 'request_revision'):
             return [IsAdmin(), NotForcingPasswordChange()]
-        if self.action == 'create':
-            return [CanEncodeSurvey(), NotForcingPasswordChange()]
-        if self.action == 'partial_update':
-            return [CanEncodeSurvey(), NotForcingPasswordChange()]
-        if self.action in ('submit',):
+        if self.action in ('create', 'partial_update', 'submit'):
             return [CanEncodeSurvey(), NotForcingPasswordChange()]
         return [CanViewSurvey(), NotForcingPasswordChange()]
 
@@ -415,8 +445,36 @@ class HouseholdSurveyViewSet(PurokScopedMixin, viewsets.ModelViewSet):
         return Response(HouseholdSurveySerializer(survey).data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, *args, **kwargs):
-        """PATCH /surveys/{id}/ — update survey data JSON + metadata."""
+        """
+        PATCH /surveys/{id}/ — update survey data JSON + metadata.
+
+        Optimistic locking: if the client sends `updated_at` in the request body,
+        the server checks it matches the current value. A mismatch means another
+        user edited the record since the client last fetched it — returns 409.
+        """
         survey = self.get_object()
+
+        # Optimistic locking check
+        client_updated_at = request.data.get('updated_at')
+        if client_updated_at:
+            from django.utils.dateparse import parse_datetime
+            parsed = parse_datetime(str(client_updated_at))
+            if parsed and survey.updated_at and abs(
+                (survey.updated_at.replace(tzinfo=None) if survey.updated_at.tzinfo else survey.updated_at)
+                - (parsed.replace(tzinfo=None) if parsed.tzinfo else parsed)
+            ).total_seconds() > 1:
+                return Response(
+                    {
+                        'error': 'conflict',
+                        'detail': (
+                            'This record was modified by another user after you loaded it. '
+                            'Please reload the page and re-apply your changes.'
+                        ),
+                        'server_updated_at': survey.updated_at,
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
         serializer = SurveyDataUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -1026,9 +1084,14 @@ class ReportViewSet(viewsets.ViewSet):
     PERMISSION: Staff need perm_generate_reports=True on their StaffProfile.
                 ADMIN+ can always export.
     """
-    permission_classes = [CanViewSurvey, NotForcingPasswordChange]
+    permission_classes = [CanExportSurvey, NotForcingPasswordChange]
 
     def _check_export_permission(self):
+        """
+        Secondary check for StaffProfile.perm_generate_reports.
+        CanExportSurvey (view-level) already gates via purok can_export flag.
+        This additionally enforces the profile-level report generation toggle.
+        """
         user = self.request.user
         if user.role in ('SUPER_ADMIN', 'ADMIN'):
             return

@@ -38,6 +38,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     totp_secret = models.CharField(max_length=64, blank=True)
     totp_enabled = models.BooleanField(default=False)
 
+    # RESIDENT ↔ Person link
+    # Only populated for role=RESIDENT. Points to the Person record in the
+    # profiling DB so the resident can access their own household survey data.
+    person = models.OneToOneField(
+        'profiling.Person',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='user_account',
+        help_text='Links a RESIDENT user to their Person record in profiling. '
+                  'Null for STAFF, ADMIN, SUPER_ADMIN.',
+    )
+
     # Granular permissions
     perm_manage_residents = models.BooleanField(default=False)
     perm_manage_staff = models.BooleanField(default=False)
@@ -125,11 +137,15 @@ class StaffPurokPermission(models.Model):
         on_delete=models.CASCADE,
         related_name='staff_permissions',
     )
-    can_view = models.BooleanField(default=True)
-    can_create = models.BooleanField(default=False)
-    can_edit = models.BooleanField(default=False)
-    can_delete = models.BooleanField(default=False)
-    can_export = models.BooleanField(default=False)
+    can_view            = models.BooleanField(default=True)
+    can_create          = models.BooleanField(default=False)
+    can_edit            = models.BooleanField(default=False)
+    can_delete          = models.BooleanField(default=False)
+    can_export          = models.BooleanField(default=False)
+    can_view_audit_logs = models.BooleanField(
+        default=False,
+        help_text='Staff can view audit logs scoped to this purok only.',
+    )
 
     class Meta:
         unique_together = ('user', 'purok')

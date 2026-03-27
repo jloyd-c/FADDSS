@@ -27,6 +27,27 @@ class AuditLog(models.Model):
         RESIDENT_CREATED = 'RESIDENT_CREATED', 'Resident Record Created'
         RESIDENT_UPDATED = 'RESIDENT_UPDATED', 'Resident Record Updated'
         RESIDENT_DELETED = 'RESIDENT_DELETED', 'Resident Record Deleted'
+        # Permissions
+        PERMISSION_GRANTED  = 'PERMISSION_GRANTED',  'Permission Granted'
+        PERMISSION_REVOKED  = 'PERMISSION_REVOKED',  'Permission Revoked'
+        PERMISSION_CHANGED  = 'PERMISSION_CHANGED',  'Permission Changed'
+        # Profiling — surveys
+        SURVEY_CREATED      = 'SURVEY_CREATED',      'Survey Created'
+        SURVEY_UPDATED      = 'SURVEY_UPDATED',      'Survey Updated'
+        SURVEY_SUBMITTED    = 'SURVEY_SUBMITTED',    'Survey Submitted'
+        SURVEY_VERIFIED     = 'SURVEY_VERIFIED',     'Survey Verified'
+        SURVEY_REVISION     = 'SURVEY_REVISION',     'Survey Sent for Revision'
+        SURVEY_DELETED      = 'SURVEY_DELETED',      'Survey Deleted'
+        # Profiling — households
+        HOUSEHOLD_CREATED   = 'HOUSEHOLD_CREATED',  'Household Created'
+        HOUSEHOLD_UPDATED   = 'HOUSEHOLD_UPDATED',  'Household Updated'
+        HOUSEHOLD_DELETED   = 'HOUSEHOLD_DELETED',  'Household Deleted'
+        # Profiling — schemas
+        SCHEMA_CREATED      = 'SCHEMA_CREATED',     'Form Schema Created'
+        SCHEMA_UPDATED      = 'SCHEMA_UPDATED',     'Form Schema Updated'
+        SCHEMA_DELETED      = 'SCHEMA_DELETED',     'Form Schema Deleted'
+        # Profiling — resident account linking
+        RESIDENT_ACCOUNT_LINKED = 'RESIDENT_ACCT_LINKED', 'Resident Account Linked to Person'
 
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -43,6 +64,17 @@ class AuditLog(models.Model):
         blank=True,
         related_name='audit_events',
     )
+    # Purok context — set for profiling actions (survey/household events).
+    # NULL for system-level events (login, user creation, etc.).
+    # Denormalized at write time so STAFF can filter logs by their puroks
+    # without chasing FK chains.
+    purok = models.ForeignKey(
+        'residents.Purok',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='audit_logs',
+        help_text='Purok where this action occurred. Null for non-profiling events.',
+    )
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
     extra = models.JSONField(default=dict, blank=True)
@@ -50,6 +82,10 @@ class AuditLog(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['purok', 'timestamp']),
+            models.Index(fields=['actor', 'timestamp']),
+        ]
         verbose_name = 'Audit Log'
         verbose_name_plural = 'Audit Logs'
 

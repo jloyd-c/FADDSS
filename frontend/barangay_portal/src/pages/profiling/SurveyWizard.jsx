@@ -20,6 +20,7 @@ import {
 import {
   getHouseholds, getFormSchemas, getFormSchema, createSurvey, createHousehold,
 } from '../../api/profilingApi'
+import { getPuroks } from '../../api/residentsApi'
 import { useToast } from '../../context/ToastContext'
 import useDebounce from '../../hooks/useDebounce'
 import DynamicFormRenderer from '../../components/profiling/DynamicFormRenderer'
@@ -167,7 +168,14 @@ function Step1Household({ data, onChange }) {
   const [results,  setResults]  = useState([])
   const [loading,  setLoading]  = useState(false)
   const [showNew,  setShowNew]  = useState(false)
-  const [newForm,  setNewForm]  = useState({ household_number: '', address: '', status: 'ACTIVE' })
+  const [newForm,  setNewForm]  = useState({ household_number: '', address: '', status: 'ACTIVE', purok: '' })
+  const [puroks,   setPuroks]   = useState([])
+
+  useEffect(() => {
+    getPuroks({ page_size: 100 })
+      .then(({ data: d }) => setPuroks(d.results ?? d))
+      .catch(() => {})
+  }, [])
 
   const debouncedSearch = useDebounce(search, 350)
 
@@ -274,7 +282,7 @@ function Step1Household({ data, onChange }) {
             <Button variant="secondary" onClick={() => setShowNew(false)}>Cancel</Button>
             <Button
               onClick={() => {
-                if (!newForm.household_number || !newForm.address) return
+                if (!newForm.household_number || !newForm.address || !newForm.purok) return
                 onChange({ household: { ...newForm, id: null, _isNew: true } })
                 setShowNew(false)
               }}
@@ -285,6 +293,16 @@ function Step1Household({ data, onChange }) {
         }
       >
         <div className="space-y-4">
+          <Select
+            label="Purok"
+            value={newForm.purok}
+            onChange={(e) => setNewForm(f => ({ ...f, purok: e.target.value }))}
+            required
+            options={[
+              { value: '', label: '— Select Purok —' },
+              ...puroks.map((p) => ({ value: p.id, label: `Purok ${p.number}${p.name ? ` — ${p.name}` : ''}` })),
+            ]}
+          />
           <Input
             label="Household Number"
             value={newForm.household_number}
@@ -1089,6 +1107,7 @@ export default function SurveyWizard() {
       let householdId = wizardData.household.id
       if (!householdId) {
         const { data: created } = await createHousehold({
+          purok:            wizardData.household.purok,
           household_number: wizardData.household.household_number,
           address:          wizardData.household.address,
           status:           wizardData.household.status || 'ACTIVE',

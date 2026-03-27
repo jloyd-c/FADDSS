@@ -8,7 +8,7 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 
-def log_action(action, actor=None, request=None, target_user=None, extra=None):
+def log_action(action, actor=None, request=None, target_user=None, extra=None, purok=None):
     """
     Record an action in the audit trail.
 
@@ -16,6 +16,8 @@ def log_action(action, actor=None, request=None, target_user=None, extra=None):
     request     — Django request object (used to extract IP + user-agent)
     target_user — the User the action was performed ON
     extra       — arbitrary dict for additional context
+    purok       — Purok instance for profiling actions (enables STAFF audit filtering)
+                  Pass None for system-level events (login, user management, etc.)
     """
     ip = None
     ua = ''
@@ -27,6 +29,7 @@ def log_action(action, actor=None, request=None, target_user=None, extra=None):
         actor=actor,
         action=action,
         target_user=target_user,
+        purok=purok,
         ip_address=ip,
         user_agent=ua,
         extra=extra or {},

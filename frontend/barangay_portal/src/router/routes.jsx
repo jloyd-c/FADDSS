@@ -10,6 +10,7 @@ const AdminsPage            = lazy(() => import('../pages/users/AdminsPage'))
 const StaffPage             = lazy(() => import('../pages/users/StaffPage'))
 const ResidentsPage         = lazy(() => import('../pages/residents/ResidentsPage'))
 const ResidentDetailPage    = lazy(() => import('../pages/residents/ResidentDetailPage'))
+const PuroksPage            = lazy(() => import('../pages/residents/PuroksPage'))
 const ChangePasswordPage    = lazy(() => import('../pages/ChangePasswordPage'))
 const UnauthorizedPage      = lazy(() => import('../pages/UnauthorizedPage'))
 const StaffDetailPage       = lazy(() => import('../pages/users/StaffDetailPage'))
@@ -60,12 +61,25 @@ const router = createBrowserRouter([
           { path: 'residents',     element: <ResidentsPage /> },
           { path: 'residents/:id', element: <ResidentDetailPage /> },
 
-          // Profiling — all authenticated staff
-          { path: 'profiling',            element: <ProfilingPage /> },
-          { path: 'profiling/wizard',     element: <SurveyWizard /> },
-          { path: 'profiling/comparison', element: <HouseholdComparison /> },
-          { path: 'profiling/concepts',   element: <ConceptSearch /> },
-          { path: 'profiling/reports',    element: <ReportBuilder /> },
+          // Puroks — ADMIN+ only
+          {
+            element: <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']} />,
+            children: [
+              { path: 'puroks', element: <PuroksPage /> },
+            ],
+          },
+
+          // Profiling — staff and above (not RESIDENT)
+          {
+            element: <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'STAFF']} />,
+            children: [
+              { path: 'profiling',            element: <ProfilingPage /> },
+              { path: 'profiling/wizard',     element: <SurveyWizard /> },
+              { path: 'profiling/comparison', element: <HouseholdComparison /> },
+              { path: 'profiling/concepts',   element: <ConceptSearch /> },
+              { path: 'profiling/reports',    element: <ReportBuilder /> },
+            ],
+          },
 
           // Profiling — admin-only schema builder
           {

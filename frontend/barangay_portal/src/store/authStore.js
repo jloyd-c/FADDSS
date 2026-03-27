@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { login as loginApi, logout as logoutApi } from '../api/authApi'
+import { getMe, login as loginApi, logout as logoutApi } from '../api/authApi'
 
 function loadUser() {
   try {
@@ -53,6 +53,18 @@ const useAuthStore = create((set, get) => ({
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
       set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false })
+    }
+  },
+
+  // Re-fetch the current user from /auth/me/ and update the store.
+  // Call this after login to get the full MeSerializer payload (assigned_puroks, etc.).
+  refreshMe: async () => {
+    try {
+      const { data } = await getMe()
+      localStorage.setItem('user', JSON.stringify(data))
+      set({ user: data })
+    } catch (_) {
+      // Silently ignore — caller can handle if needed
     }
   },
 

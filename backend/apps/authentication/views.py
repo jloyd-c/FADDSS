@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.accounts.serializers import UserSerializer
+from apps.accounts.serializers import MeSerializer
 from apps.audit.models import AuditLog
 from apps.audit.utils import log_action
 from .serializers import (
@@ -68,7 +68,7 @@ class LoginView(APIView):
 
         response_data = {
             **_jwt_pair(user),
-            'user': UserSerializer(user).data,
+            'user': MeSerializer(user).data,
         }
 
         # Warn frontend if 2FA setup is still pending
@@ -113,7 +113,7 @@ class MeView(APIView):
     allow_must_change_password = True
 
     def get(self, request):
-        return Response(UserSerializer(request.user).data)
+        return Response(MeSerializer(request.user).data)
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ class TwoFAVerifyView(APIView):
 
         response_data = {
             **_jwt_pair(user),
-            'user': UserSerializer(user).data,
+            'user': MeSerializer(user).data,
         }
         if user.must_change_password:
             response_data['must_change_password'] = True
